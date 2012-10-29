@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the file berth module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function file_berth_schema() {
+	
+	$schema['file_berth'] = array(
+		'description' => 'Stores file berth information.',
+		'fields' => array(
+			'fid' => array(
+				'type' => 'serial',
+				'not null' => TRUE,
+				'size' => 'tiny',
+				'description' => 'File id foregin key for file_managed.',
+			),
+			'file_berth_title' => array(
+				'type' => 'varchar',
+				'not null' => TRUE,
+				'size' => 'normal',
+				'description' => 'Text text for file berth.',
+			),
+			'file_berth_alt_tag' => array(
+				'type' => 'varchar',
+				'size' => 'normal',
+				'description' => 'Alt tag for file.',
+			),
+			'file_berth_alt_tag' => array(
+				'type' => 'varchar',
+				'size' => 'normal',
+				'description' => 'Description for file.',
+			),
+		),
+		'primary key' => array('fid'),
+	);
+	return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function file_berth_install() {
+	variable_set('file_berth_settings', array());
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function file_berth_uninstall() {
+	// Delete all the File berth variables
+	variable_del('file_berth_settings');
+	cache_clear_all('variables', 'cache');
+}

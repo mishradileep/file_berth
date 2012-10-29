@@ -1,0 +1,5 @@
+name = File Berth
+description = Allow to upload files and allocate a berth to each one which can be used by other modules.
+package = File Berth
+version = VERSION
+core = 7.x

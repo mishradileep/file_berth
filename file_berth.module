@@ -1,0 +1,68 @@
+<?php
+/**
+ * Implements hook_permission().
+ */
+function file_berth_permission() {
+	$perms = array(
+		'file berth admin' => array(
+			'title' => t('file berth admin'),
+			'description' => t('Admin access to file berth.'),
+			'restrict access' => TRUE,
+		),
+		'file upload' => array(
+			'title' => t('file upload'),
+			'description' => t('Allow to upload file and generate file short code'),
+			'restrict access' => TRUE,
+		),
+		'file berth listing' => array(
+			'title' => t('file berth listing'),
+			'description' => t('Allow to access file berth listing.'),
+			'restrict access' => TRUE,
+		)
+	);
+	
+	return $perms;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function file_berth_menu() {
+	$items['admin/structure/file_berth'] = array(
+		'title' => 'Berth',
+		'description' => 'Listing of uploaded files',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('list_file_berth'),
+		//'page callback' => 'list_file_berth',
+		'access arguments' => array('file berth listing'),
+		'type' => MENU_NORMAL_ITEM,
+		'weight' => -10,
+		'file' => 'file_berth.admin.inc',
+	);
+	$items['admin/structure/file_berth/listing'] = array(
+		'title' => 'Berth Listing',
+	    'type' => MENU_DEFAULT_LOCAL_TASK,
+	    'weight' => -10,
+	);
+	$items['admin/structure/file_berth/settings'] = array(
+		'title' => 'Settings',
+		'description' => 'File Berth module settings',
+		'page callback' => 'settings_file_berth',
+		'access arguments' => array('file berth admin'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 1,
+		'file' => 'file_berth.admin.inc',
+	);
+	$items['admin/structure/file_berth/upload'] = array(
+		'title' => 'File upload berth',
+		'description' => 'File Berth file upload',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('upload_file_berth'),
+		'access arguments' => array('file berth admin'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 1,
+		'file' => 'file_berth.admin.inc',
+	);
+	
+	return $items;
+}
