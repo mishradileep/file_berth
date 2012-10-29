@@ -162,10 +162,26 @@ function upload_file_berth_submit($form, &$form_state) {
 		$file = file_load($form_state['values']['file_berth_file']);
 		$file->status = FILE_STATUS_PERMANENT;
 		file_save($file);
+		db_insert('file_berth')
+		->fields(array(
+				'fid' => $file->fid,
+				'file_berth_title' => $form_state['values']['file_berth_title'],
+				'file_berth_alt_tag' => $form_state['values']['file_berth_alt_text'],
+				'file_berth_description' => $form_state['values']['file_berth_description']
+			))->execute();
+		drupal_set_message('File uploaded and allocated berth.', 'status');
+		drupal_goto('admin/structure/file_berth');
 		
 	}
 	else {
 		drupal_set_message('File birth can\'t be allocated.', 'error');
 	}
 	
+}
+
+
+function pr($arr) {
+	echo "<pre>";
+	print_r($arr);
+	echo "</pre>";
 }

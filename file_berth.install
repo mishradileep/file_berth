@@ -22,21 +22,21 @@ function file_berth_schema() {
 			'file_berth_title' => array(
 				'type' => 'varchar',
 				'not null' => TRUE,
-				'size' => 'normal',
-				'description' => 'Text text for file berth.',
+				'length' => 255, 
+				'description' => 'Text for file berth.',
 			),
 			'file_berth_alt_tag' => array(
 				'type' => 'varchar',
-				'size' => 'normal',
+				'length' => 255, 
 				'description' => 'Alt tag for file.',
 			),
-			'file_berth_alt_tag' => array(
+			'file_berth_description' => array(
 				'type' => 'varchar',
-				'size' => 'normal',
+				'length' => 255, 
 				'description' => 'Description for file.',
-			),
+			)
 		),
-		'primary key' => array('fid'),
+		'primary key' => array('fid')
 	);
 	return $schema;
 }
