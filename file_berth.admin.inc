@@ -9,7 +9,7 @@ function list_file_berth() {
 }
 
 function settings_file_berth() {
-	return 'asdas';
+	return drupal_get_form('file_berth_settings');
 }
 
 function file_berth_filter_form() {
@@ -23,89 +23,59 @@ function file_berth_filter_form() {
 
 function file_berth_list() {
 	
-	
-	$query = db_select('node', 'n')->extend('PagerDefault')->extend('TableSort');
-	//file_berth_build_filter_query($query);
-	// Build the sortable table header.
 	$header = array(
-		'title' => array('data' => t('Title'), 'field' => 'n.title'),
-		'type' => array('data' => t('Type'), 'field' => 'n.type'),
-		'author' => t('Author'),
-		'status' => array('data' => t('Status'), 'field' => 'n.status'),
-		'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'desc')
+			'file_berth_title' => array('data' => t('Title'), 'field' => 'berth.file_berth_title'),
+			'filemime' => array('data' => t('MIME Type'), 'field' => 'files.filemime'),
+			'filesize' => array('data' => t('Size'), 'field' => 'files.filesize'),
 	);
-	$nids = $query
-	->fields('n',array('nid'))
-	->limit(50)
+	
+	$query = db_select('file_berth', 'berth')
+	->extend('PagerDefault')
+	->limit(10)
+	->extend('TableSort')
 	->orderByHeader($header)
-	->addTag('node_access')
-	->execute()
-	->fetchCol();
-	$nodes = node_load_multiple($nids);
-	foreach ($nodes as $node) {
-		$langcode = entity_language('node', $node);
-		$l_options = $langcode != LANGUAGE_NONE && isset($languages[$langcode]) ? array('language' => $languages[$langcode]) : array();
-		$options[$node->nid] = array(
-				'title' => array(
-						'data' => array(
-								'#type' => 'link',
-								'#title' => $node->title,
-								'#href' => 'node/' . $node->nid,
-								'#options' => $l_options,
-								'#suffix' => ' ' . theme('mark', array('type' => node_mark($node->nid, $node->changed))),
-						),
-				),
-				'type' => check_plain(node_type_get_name($node)),
-				'author' => theme('username', array('account' => $node)),
-				'status' => $node->status ? t('published') : t('not published'),
-				'changed' => format_date($node->changed, 'short'),
-		);
+	->fields ('berth', array (
+			'fid',
+			'file_berth_title',
+			'file_berth_alt_tag',
+			'file_berth_description'
+	));
+	 
+	$query->leftJoin('file_managed', 'files', 'files.fid = berth.fid');
+	$query->fields ('files', array (
+			'filename',
+			'uri',
+			'filemime',
+			'filesize',
+			'status',
+			'timestamp'
+	));
+	
+	$result = $query->execute()->fetchAll();
+	//pr($result);
+
+	foreach ($result as $files) {
 		
-		// Build a list of all the accessible operations for the current node.
-		
-		$options[$node->nid]['operations'] = array();
-		if (count($operations) > 1) {
-			// Render an unordered list of operations links.
-			$options[$node->nid]['operations'] = array(
-					'data' => array(
-							'#theme' => 'links__node_operations',
-							'#links' => $operations,
-							'#attributes' => array('class' => array('links', 'inline')),
-					),
-			);
-		}
-		elseif (!empty($operations)) {
-			// Render the first and only operation as a link.
-			$link = reset($operations);
-			$options[$node->nid]['operations'] = array(
+		$options[$files->fid] = array(
+			'title' => array(
 					'data' => array(
 							'#type' => 'link',
-							'#title' => $link['title'],
-							'#href' => $link['href'],
-							'#options' => array('query' => $link['query']),
+							'#title' => $files->file_berth_title,
+							'#href' => $files->uri
 					),
-			);
-		}
-	}
-	// Only use a tableselect when the current user is able to perform any
-	// operations.
-	if ($admin_access) {
-		$form['nodes'] = array(
-				'#type' => 'tableselect',
-				'#header' => $header,
-				'#options' => $options,
-				'#empty' => t('No content available.'),
+			),
+			'filemime' => check_plain($files->filemime),
+			'filesize' => check_plain($files->filesize),
 		);
+		
+		
 	}
-	// Otherwise, use a simple table.
-	else {
-		$form['nodes'] = array(
-				'#theme' => 'table',
-				'#header' => $header,
-				'#rows' => $options,
-				'#empty' => t('No content available.'),
-		);
-	}
+	$form['files'] = array(
+		'#theme' => 'table',
+		'#header' => $header,
+		'#rows' => $options,
+		'#empty' => t('No content available.'),
+	);
 	
 	$form['pager'] = array('#markup' => theme('pager'));
 	return $form;
@@ -152,9 +122,6 @@ function upload_file_berth() {
 	return $form;
 }
 
-
-
-
 function upload_file_berth_submit($form, &$form_state) {
 	
 	// If fid is not 0 we have a valid file.
@@ -179,6 +146,61 @@ function upload_file_berth_submit($form, &$form_state) {
 	
 }
 
+function file_berth_settings() {
+	
+	$file_berth_settings = variable_get('file_berth_settings');
+	
+	$form['file_berth_allowed_extensions'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Allowed file extensions'),
+		'#description' => 'Separate extensions with a space or comma and do not include the leading dot.',
+		'#default_value' => $file_berth_settings['allowed_file_ext'],
+		'#size' => 60,
+		'#maxlength' => 128,
+		'#required' => TRUE,
+	);
+	$form['file_berth_file_directory'] = array(
+		'#type' => 'textfield',
+		'#title' => t('File directory'),
+		'#description' => 'Optional subdirectory within the upload destination where files will be stored. Do not include preceding or trailing slashes.',
+		'#default_value' => $file_berth_settings['file_berth'],
+		'#size' => 60,
+		'#maxlength' => 128,
+	);
+	$form['file_berth_file_size'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Maximum upload size'),
+		'#description' => 'Enter a value in bytes.',
+		'#default_value' => $file_berth_settings['upload_size'],
+		'#size' => 60,
+		'#maxlength' => 128,
+	);
+	$form['file_berth_settings_submit'] = array(
+		'#type' => 'submit',
+		'#value' => 'Submit',
+	);
+	return $form;
+}
+
+function file_berth_settings_validate($form_id,&$form_values) {
+	
+	if(trim(preg_match('/[^A-z0-9]/', trim($form_values['input']['file_berth_file_directory'])) && $form_values['input']['file_berth_file_directory']) != '' ) {
+		form_set_error('file_berth_file_directory', t('File directory should contain only alphanumeric string.'));
+	}
+	
+	if(preg_match('/[^0-9]/', trim($form_values['input']['file_berth_file_size'])) && trim($form_values['input']['file_berth_file_size']) != '') {
+		form_set_error('file_berth_file_size', t('Maximum upload size should be in numbers (bytes) only.'));
+	}
+}
+
+function file_berth_settings_submit($form_id,&$form_values) {
+	
+	$settings['allowed_file_ext'] = trim($form_values['input']['file_berth_allowed_extensions']);
+	$settings['file_berth'] = trim($form_values['input']['file_berth_file_directory']);
+	$settings['upload_size'] = trim($form_values['input']['file_berth_file_size']);
+	variable_set('file_berth_settings', $settings);
+	drupal_set_message('File berth settings seved sucessfully.','status');
+}
 
 function pr($arr) {
 	echo "<pre>";

@@ -47,7 +47,8 @@ function file_berth_menu() {
 	$items['admin/structure/file_berth/settings'] = array(
 		'title' => 'Settings',
 		'description' => 'File Berth module settings',
-		'page callback' => 'settings_file_berth',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('settings_file_berth'),
 		'access arguments' => array('file berth admin'),
 		'type' => MENU_LOCAL_TASK,
 		'weight' => 1,

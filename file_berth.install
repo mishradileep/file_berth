@@ -45,7 +45,7 @@ function file_berth_schema() {
  * Implements hook_install().
  */
 function file_berth_install() {
-	variable_set('file_berth_settings', array());
+	variable_set('file_berth_settings', array('allowed_file_ext'=>'txt','file_berth'=>'file_berth','upload_size'=>''));
 }
 
 /**
