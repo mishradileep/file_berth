@@ -27,6 +27,7 @@ function file_berth_list() {
 			'file_berth_title' => array('data' => t('Title'), 'field' => 'berth.file_berth_title'),
 			'filemime' => array('data' => t('MIME Type'), 'field' => 'files.filemime'),
 			'filesize' => array('data' => t('Size'), 'field' => 'files.filesize'),
+			'operations' => array('data' => t('Operations')),
 	);
 	
 	$query = db_select('file_berth', 'berth')
@@ -52,31 +53,72 @@ function file_berth_list() {
 	));
 	
 	$result = $query->execute()->fetchAll();
-	//pr($result);
-
-	foreach ($result as $files) {
-		
-		$options[$files->fid] = array(
-			'title' => array(
-					'data' => array(
-							'#type' => 'link',
-							'#title' => $files->file_berth_title,
-							'#href' => $files->uri
-					),
-			),
-			'filemime' => check_plain($files->filemime),
-			'filesize' => check_plain($files->filesize),
-		);
-		
-		
+	
+	$form['options'] = array(
+			'#type' => 'fieldset',
+			'#title' => t('Update options'),
+			'#attributes' => array('class' => array('container-inline')),
+	);
+	$options = array();
+	foreach (module_invoke_all('file_berth_operations') as $operation => $array) {
+		$options[$operation] = $array['label'];
 	}
-	$form['files'] = array(
-		'#theme' => 'table',
-		'#header' => $header,
-		'#rows' => $options,
-		'#empty' => t('No content available.'),
+	$form['options']['operation'] = array(
+			'#type' => 'select',
+			'#title' => t('Operation'),
+			'#title_display' => 'invisible',
+			'#options' => $options,
+			'#default_value' => 'unblock',
+	);
+	$options = array();
+	$form['options']['submit'] = array(
+			'#type' => 'submit',
+			'#value' => t('Update'),
 	);
 	
+	$destination = drupal_get_destination();
+	foreach ($result as $berth) {
+		
+		
+		
+		$options[$berth->fid] = array(
+				'file_berth_title' => array(
+	        'data' => array(
+	          '#type' => 'link',
+	          '#title' => $berth->file_berth_title,
+	          '#href' => 'file-berth/' . $berth->fid,
+	        ),
+      	), 
+				'filemime' =>  $berth->filemime,
+				'filesize' => format_size($berth->filesize),
+		);
+		
+		$operations = array();
+		$operations['edit'] = array(
+				'title' => t('edit'),
+				'href' => "file_berth/$berth->fid/edit",
+				'query' => $destination,
+		);
+		$operations['delete'] = array(
+				'title' => t('delete'),
+				'href' => "file-berth/$berth->fid/delete",
+				'query' => $destination,
+		);
+		$options[$berth->fid]['operations'] = array(
+				'data' => array(
+						'#theme' => 'links__node_operations',
+						'#links' => $operations,
+						'#attributes' => array('class' => array('links', 'inline')),
+				),
+		);
+	}
+	
+	$form['links'] = array(
+			'#type' => 'tableselect',
+			'#header' => $header,
+			'#options' => $options,
+			'#empty' => t('No files available.'),
+	);
 	$form['pager'] = array('#markup' => theme('pager'));
 	return $form;
 }
@@ -87,11 +129,8 @@ function upload_file_berth() {
 		'#type' => 'managed_file',
 		'#description' => t('The uploaded file will be allocated to a berth and managed.'),
 		'#upload_location' => 'public://file_berth/',
-		//'#element_validate' => array('_validate_file_berth_upload'),
 		'#upload_validators' => array(
 			'file_validate_extensions' => array('png jpeg gif jpg'),
-			// Pass the maximum file size in bytes
-			//'file_validate_size' => array(200),
 		),
 		'#required' => TRUE,
 	);

@@ -64,6 +64,41 @@ function file_berth_menu() {
 		'weight' => 1,
 		'file' => 'file_berth.admin.inc',
 	);
-	
+	$items['file_berth/%'] = array(
+		'title' => 'File Berth',
+		'description' => 'File Berth',
+		'page callback' => 'file_berth_view',
+		'access arguments' => array('file berth listing'),
+		'weight' => 10,
+		'file' => 'file_berth.pages.inc',
+	);
 	return $items;
+}
+
+
+
+function file_berth_file_berth_operations() {
+	$operations = array(
+			'publish' => array(
+					'label' => t('Publish the selected files'),
+					'callback' => 'exchange_links_exchange_links_operations_publish',
+			),
+			'unpublish' => array(
+					'label' => t('Unpublish the selected files'),
+					'callback' => 'exchange_links_exchange_links_operations_unpublish',
+			),
+			'delete' => array(
+					'label' => t('Delete the selected files'),
+					'callback' => 'exchange_links_exchange_links_operations_delete',
+			),
+			'make_inline' => array(
+					'label' => t('Show the selected files inlive'),
+					'callback' => 'exchange_links_exchange_links_operations_delete',
+			),
+			'remove_inline' => array(
+					'label' => t('Remove to show the selected files inlive'),
+					'callback' => 'exchange_links_exchange_links_operations_delete',
+			),
+	);
+	return $operations;
 }
