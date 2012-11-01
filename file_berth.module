@@ -68,6 +68,7 @@ function file_berth_menu() {
 		'title' => 'File Berth',
 		'description' => 'File Berth',
 		'page callback' => 'file_berth_view',
+		'page arguments' => array(1),
 		'access arguments' => array('file berth listing'),
 		'weight' => 10,
 		'file' => 'file_berth.pages.inc',
@@ -101,4 +102,29 @@ function file_berth_file_berth_operations() {
 			),
 	);
 	return $operations;
+}
+
+/*
+ * Implementation of hook_theme().
+*/
+function file_berth_theme($existing, $type, $theme, $path) {
+	$items = array(
+			'file_berth_view' => array(
+					'template' => 'templates/file_berth_view',
+					'variables' => array('file_berth' => (object)array())
+			)
+	);
+	$items = array(
+			'file_berth_render_image' => array(
+					'template' => 'templates/file_berth_render_image',
+					'variables' => array('file_berth' => (object)array())
+			)
+	);
+	return $items;
+}
+
+function pr($arr) {
+	echo "<pre>";
+	print_r($arr);
+	echo "</pre>";
 }

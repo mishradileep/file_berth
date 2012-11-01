@@ -240,9 +240,3 @@ function file_berth_settings_submit($form_id,&$form_values) {
 	variable_set('file_berth_settings', $settings);
 	drupal_set_message('File berth settings seved sucessfully.','status');
 }
-
-function pr($arr) {
-	echo "<pre>";
-	print_r($arr);
-	echo "</pre>";
-}
